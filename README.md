@@ -16,18 +16,21 @@ Using Pi Coding Agent, NanoClaw can dynamically rewrite its code to customize it
 
 **New:** First AI assistant to support [Agent Swarms](https://github.com/mariozechner/pi-coding-agent). Spin up teams of agents that collaborate in your chat.
 
-## Why I Built NanoClaw
+## Project Origin and This Fork
 
-[OpenClaw](https://github.com/openclaw/openclaw) is an impressive project, but I wouldn't have been able to sleep if I had given complex software I didn't understand full access to my life. OpenClaw has nearly half a million lines of code, 53 config files, and 70+ dependencies. Its security is at the application level (allowlists, pairing codes) rather than true OS-level isolation. Everything runs in one Node process with shared memory.
+This repository is a community-maintained fork of NanoClaw. Full credit for the original project vision and architecture goes to the upstream NanoClaw creator and contributors.
 
-NanoClaw provides that same core functionality, but in a codebase small enough to understand: one process and a handful of files. Pi agents run in their own Linux containers with filesystem isolation, not merely behind permission checks.
+- Upstream project: https://github.com/qwibitai/nanoclaw
+- This fork: https://github.com/xke-b/pi-nanoclaw
+
+The goal of this fork is to keep NanoClaw minimal while adapting it to a Pi-native runtime and workflow.
 
 ## Quick Start
 
 ```bash
-git clone https://github.com/qwibitai/nanoclaw.git
-cd NanoClaw
-claude
+git clone https://github.com/xke-b/pi-nanoclaw.git
+cd pi-nanoclaw
+pi
 ```
 
 Then run `/setup`. Pi Coding Agent handles everything: dependencies, authentication, container setup and service configuration.
@@ -55,7 +58,7 @@ Then run `/setup`. Pi Coding Agent handles everything: dependencies, authenticat
 
 ## What It Supports
 
-- **Multi-channel messaging** - Talk to your assistant from WhatsApp, Telegram, Discord, Slack, or Gmail. Add channels with skills like `/add-whatsapp` or `/add-telegram`. Run one or many at the same time.
+- **Multi-channel messaging** - Talk to your assistant from WhatsApp, Telegram, Feishu (CN), Discord, Slack, or Gmail. Add channels with skills like `/add-whatsapp`, `/add-telegram`, or `/add-feishu`. Run one or many at the same time.
 - **Isolated group context** - Each group has its own `CLAUDE.md` memory, isolated filesystem, and runs in its own container sandbox with only that filesystem mounted to it.
 - **Main channel** - Your private channel (self-chat) for admin control; every group is completely isolated
 - **Scheduled tasks** - Recurring jobs that run Pi agents and can message you back

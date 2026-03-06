@@ -2,6 +2,8 @@
 
 A personal AI assistant with multi-channel support, persistent memory per conversation, scheduled tasks, and container-isolated agent execution.
 
+This specification is maintained by the `pi-nanoclaw` fork and evolves from the upstream NanoClaw architecture.
+
 ---
 
 ## Table of Contents
@@ -783,3 +785,122 @@ npm run dev
 # or
 node dist/index.js
 ```
+
+---
+
+## Planned Extension: Feishu CN MVP via Skill (`/add-feishu`)
+
+This section defines a **planning-only** implementation target for adding Feishu support while preserving NanoClaw's original development mode: small, understandable, skill-driven, and minimal in base complexity.
+
+### Development Mode Alignment (Original NanoClaw Style)
+
+The Feishu work must follow these rules:
+
+1. **Skill-first delivery**: Ship as a skill package (`.pi/skills/add-feishu`) rather than hard-wiring broad channel complexity into core.
+2. **Minimal viable channel**: Match Telegram-level complexity, not OpenClaw-level feature depth.
+3. **Small diffs, clear ownership**: Keep core changes limited to channel registration/import and essential channel abstraction usage.
+4. **Test-backed behavior**: Add focused unit tests for channel behavior and trigger normalization.
+5. **Strict non-goals**: Defer advanced capabilities (cards, media workflows, multi-account, thread/topic routing, webhook mode).
+
+### Scope (MVP, Feishu CN only)
+
+#### In scope
+- Feishu CN (no Lark/global domain support)
+- Parallel channel operation with existing Telegram/WhatsApp model
+- Text inbound ingestion (DM + group)
+- Text outbound replies
+- Basic mention-to-trigger normalization (group messages)
+- Registration/discovery parity with existing channels
+
+#### Out of scope (explicitly deferred)
+- Lark global support
+- Webhook mode (MVP uses WebSocket long connection only)
+- Cards/streaming cards, reactions, media upload/download
+- Thread/topic session routing
+- Multi-account and account routing policies
+- Advanced dedupe/replay persistence and quota tuning
+
+### Proposed Files and Skill Package
+
+#### Core repo changes (minimal)
+- `src/channels/feishu.ts` (new)
+- `src/channels/feishu.test.ts` (new)
+- `src/channels/index.ts` (import registration only)
+- `package.json` / lockfile (Feishu SDK dependency)
+- `.env.example` (`FEISHU_APP_ID`, `FEISHU_APP_SECRET`)
+
+#### Skill package
+- `.pi/skills/add-feishu/SKILL.md`
+- `.pi/skills/add-feishu/manifest.yaml`
+- `.pi/skills/add-feishu/add/src/channels/feishu.ts`
+- `.pi/skills/add-feishu/add/src/channels/feishu.test.ts`
+- `.pi/skills/add-feishu/modify/src/channels/index.ts`
+- `.pi/skills/add-feishu/modify/src/channels/index.ts.intent.md`
+
+### Milestones and Acceptance Criteria
+
+#### M1 — Channel skeleton + registration
+- Channel self-registers through registry/barrel model.
+- Missing credentials returns `null` factory (skip, warn) like existing channels.
+
+**Accept when:**
+- Build passes and startup skips channel cleanly without Feishu env vars.
+
+#### M2 — Inbound text path (DM + group)
+- Feishu inbound text events map to NanoClaw `NewMessage`.
+- `onChatMetadata` and `onMessage` integrate with current DB/message loop flow.
+- Unregistered chats are ignored.
+
+**Accept when:**
+- Messages appear in DB and trigger pipeline only for registered `fs:*` JIDs.
+
+#### M3 — Outbound send path
+- `sendMessage(jid, text)` works for `fs:<chat_id>`.
+- Reasonable text splitting if API limit requires it.
+
+**Accept when:**
+- Live chat receives assistant responses reliably.
+
+#### M4 — Mention/trigger normalization
+- Group messages that mention bot are normalized to trigger format (`@ASSISTANT_NAME ...`) if needed.
+- Avoid duplicate trigger prefixing.
+
+**Accept when:**
+- Mentioned group messages are processed consistently with trigger policy.
+
+#### M5 — Skill packaging + docs/setup
+- Skill applies deterministically via skills-engine.
+- Setup instructions documented for Feishu CN app creation and credentials.
+
+**Accept when:**
+- Fresh repo can run `npx tsx scripts/apply-skill.ts .pi/skills/add-feishu`, build, and pass tests.
+
+### Test Matrix (MVP)
+
+Minimum tests in `src/channels/feishu.test.ts`:
+- Factory returns `null` when creds missing
+- `ownsJid("fs:...")` behavior
+- Inbound text conversion to `onMessage` payload
+- Unregistered chat ignored
+- Mention normalization behavior
+- Outbound send target formatting
+- Connect/disconnect lifecycle
+
+### Complexity and Estimated Effort
+
+Based on OpenClaw Feishu extension patterns (highly advanced and much broader than NanoClaw MVP):
+
+- **Complexity**: Medium
+- **Estimated effort**: **3–5 engineering days**
+  - Channel implementation: 1.5–2.5 days
+  - Mention normalization + edge handling: 0.5–1 day
+  - Skill packaging/docs: 0.5–1 day
+  - Testing + live validation: 0.5–1 day
+
+### Risks (MVP)
+
+1. Feishu event payload shape differences in real group contexts
+2. Mention parsing edge cases
+3. Reconnect behavior under transient network failures
+
+Mitigation: keep MVP text-only and add targeted integration smoke checks early.
