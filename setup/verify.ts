@@ -96,13 +96,32 @@ export async function run(_args: string[]): Promise<void> {
     }
   }
 
-  // 3. Check credentials
+  // 3. Check credentials (Pi providers via env and/or auth.json)
   let credentials = 'missing';
   const envFile = path.join(projectRoot, '.env');
   if (fs.existsSync(envFile)) {
     const envContent = fs.readFileSync(envFile, 'utf-8');
-    if (/^(CLAUDE_CODE_OAUTH_TOKEN|ANTHROPIC_API_KEY)=/m.test(envContent)) {
+    if (
+      /^(ANTHROPIC_API_KEY|OPENAI_API_KEY|GEMINI_API_KEY|GOOGLE_API_KEY|AZURE_OPENAI_API_KEY|MISTRAL_API_KEY|GROQ_API_KEY|CEREBRAS_API_KEY|XAI_API_KEY|OPENROUTER_API_KEY|AI_GATEWAY_API_KEY|ZAI_API_KEY|OPENCODE_API_KEY|HF_TOKEN|KIMI_API_KEY|MINIMAX_API_KEY|MINIMAX_CN_API_KEY|AWS_ACCESS_KEY_ID|AWS_PROFILE|AWS_BEARER_TOKEN_BEDROCK)=/m.test(
+        envContent,
+      )
+    ) {
       credentials = 'configured';
+    }
+  }
+
+  // Host Pi auth file from `/login` in interactive Pi is also valid.
+  if (credentials === 'missing') {
+    const authPath = path.join(homeDir, '.pi', 'agent', 'auth.json');
+    if (fs.existsSync(authPath)) {
+      try {
+        const authRaw = fs.readFileSync(authPath, 'utf-8').trim();
+        if (authRaw && authRaw !== '{}' && authRaw !== 'null') {
+          credentials = 'configured';
+        }
+      } catch {
+        // ignore parse/read errors and keep missing
+      }
     }
   }
 
