@@ -13,9 +13,9 @@
   <a href="repo-tokens"><img src="repo-tokens/badge.svg" alt="34.9k tokens, 17% of context window" valign="middle"></a>
 </p>
 
-Using Pi Coding Agent, NanoClaw can dynamically rewrite its code to customize its feature set for your needs.
+Using **Pi Coding Agent** (https://github.com/badlogic/pi-mono/tree/main/packages/coding-agent), NanoClaw can dynamically rewrite its code to customize its feature set for your needs.
 
-**New:** First AI assistant to support [Agent Swarms](https://github.com/mariozechner/pi-coding-agent). Spin up teams of agents that collaborate in your chat.
+**New:** First AI assistant to support Agent Swarms (teams of agents that collaborate in your chat).
 
 ---
 
@@ -38,16 +38,29 @@ curl -fsSL https://nanoclaw.dev/install-docker-sandboxes-windows.sh | bash
 
 ---
 
-## Project Origin and This Fork
+## Project Origin and Credit
 
-This repository is a community-maintained fork of NanoClaw. Full credit for the original project vision and architecture goes to the upstream NanoClaw creator and contributors.
+This repository is a fork of **NanoClaw**.
 
-- Upstream project: https://github.com/qwibitai/nanoclaw
-- This fork: https://github.com/deepflame-ai/pi-nanoclaw
+- Original / upstream NanoClaw repo (credit for the original project vision and architecture): https://github.com/qwibitai/nanoclaw
+- This fork (DeepFlame AI group): https://github.com/deepflame-ai/pi-nanoclaw
 
-The goal of this fork is to keep NanoClaw minimal while adapting it to a Pi-native runtime and workflow.
+## What this fork is
+
+`deepflame-ai/pi-nanoclaw` is an **extension fork** of NanoClaw used for customized features for **combustion research** and other activities of the group (e.g., research automation, literature workflows, manuscript preparation, and team ops), while staying close to upstream where possible.
+
+## Pi Coding Agent
+
+This fork is designed to be operated via **Pi Coding Agent** (the CLI + skill system):
+
+- Pi Coding Agent source: https://github.com/badlogic/pi-mono/tree/main/packages/coding-agent
 
 ## Quick Start
+
+1) Install **Pi Coding Agent** (see upstream instructions here):
+- https://github.com/badlogic/pi-mono/tree/main/packages/coding-agent
+
+2) Clone this repo and start Pi in the project directory:
 
 ```bash
 git clone https://github.com/deepflame-ai/pi-nanoclaw.git
@@ -55,9 +68,13 @@ cd pi-nanoclaw
 pi
 ```
 
-Then run `/setup`. Pi Coding Agent handles everything: dependencies, authentication, container setup and service configuration.
+3) Inside the `pi` prompt, run the setup skill:
 
-> **Note:** Commands prefixed with `/` (like `/setup`, `/add-whatsapp`) are Pi Coding Agent skills. Type them inside the `pi` CLI prompt, not in your regular terminal.
+- `/skill:setup`
+
+Pi Coding Agent will guide you through dependencies, authentication, container/runtime setup, and service configuration.
+
+> **Note:** Commands prefixed with `/` (like `/skill:setup`, `/add-whatsapp`) are Pi Coding Agent skills. Type them inside the `pi` CLI prompt, not in your regular terminal.
 
 ## Philosophy
 
@@ -123,7 +140,7 @@ The codebase is small enough that Pi can safely modify it.
 
 **Don't add features. Add skills.**
 
-If you want to add Telegram support, don't create a PR that adds Telegram alongside WhatsApp. Instead, contribute a skill file (`.pi/skills/add-telegram/SKILL.md`) that teaches Pi Coding Agent how to transform a NanoClaw installation to use Telegram.
+If you want to add Telegram support, don't create a PR that adds Telegram alongside WhatsApp. Instead, contribute a skill file (under `.claude/skills/` — `.pi/skills/` is a symlink in this fork) that teaches Pi Coding Agent how to transform a NanoClaw installation to use Telegram.
 
 Users then run `/add-telegram` on their fork and get clean code that does exactly what they need, not a bloated system trying to support every use case.
 
@@ -173,7 +190,7 @@ Docker provides cross-platform support (macOS, Linux and even Windows via WSL2) 
 
 **Can I run this on Linux?**
 
-Yes. Docker is the default runtime and works on both macOS and Linux. Just run `/setup`.
+Yes. Docker is the default runtime and works on both macOS and Linux. Just run `/skill:setup`.
 
 **Is this secure?**
 
