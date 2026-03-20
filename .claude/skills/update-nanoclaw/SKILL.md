@@ -16,12 +16,12 @@ Run `/update-nanoclaw` in Pi Coding Agent.
 **Backup**: creates a timestamped backup branch and tag (`backup/pre-update-<hash>-<timestamp>`, `pre-update-<hash>-<timestamp>`) before touching anything. Safe to run multiple times.
 
 **Preview**: runs `git log` and `git diff` against the merge base to show upstream changes since your last sync. Groups changed files into categories:
-- **Skills** (`.pi/skills/`): unlikely to conflict unless you edited an upstream skill
+- **Skills** (`.claude/skills/`): unlikely to conflict unless you edited an upstream skill (in this fork, `.pi/skills` may be a symlink)
 - **Source** (`src/`): may conflict if you modified the same files
 - **Build/config** (`package.json`, `tsconfig*.json`, `container/`): review needed
 
 **Update paths** (you pick one):
-- `merge` (default): `git merge upstream/<branch>`. Resolves all conflicts in one pass.
+- `merge` (default): merge upstream into your customization branch. Recommended flow is to maintain a local tracking branch `upstream-main` (fast-forwarded to `upstream/<branch>`) and then `git merge upstream-main`.
 - `cherry-pick`: `git cherry-pick <hashes>`. Pull in only the commits you want.
 - `rebase`: `git rebase upstream/<branch>`. Linear history, but conflicts resolve per-commit.
 - `abort`: just view the changelog, change nothing.
@@ -82,6 +82,13 @@ Determine the upstream branch name:
 Fetch:
 - `git fetch upstream --prune`
 
+Create/update a local upstream tracking branch (recommended for long-term maintenance):
+- Ensure `upstream-main` exists and points at `upstream/$UPSTREAM_BRANCH`:
+  - `git branch -f upstream-main upstream/$UPSTREAM_BRANCH`
+  - `git branch --set-upstream-to=upstream/$UPSTREAM_BRANCH upstream-main`
+
+This lets your customized branch stay "ahead" while you regularly fast-forward `upstream-main` and merge it into your work.
+
 # Step 1: Create a safety net
 Capture current state:
 - `HASH=$(git rev-parse --short HEAD)`
@@ -107,7 +114,7 @@ Show file-level impact from upstream:
 - `git diff --name-only $BASE..upstream/$UPSTREAM_BRANCH`
 
 Bucket the upstream changed files:
-- **Skills** (`.pi/skills/`): unlikely to conflict unless the user edited an upstream skill
+- **Skills** (`.claude/skills/`): unlikely to conflict unless the user edited an upstream skill (some forks keep `.pi/skills` as a symlink)
 - **Source** (`src/`): may conflict if user modified the same files
 - **Build/config** (`package.json`, `package-lock.json`, `tsconfig*.json`, `container/`, `launchd/`): review needed
 - **Other**: docs, tests, misc
@@ -124,14 +131,14 @@ If Abort: stop here.
 If Full update or Rebase:
 - Dry-run merge to preview conflicts. Run these as a single chained command so the abort always executes:
   ```
-  git merge --no-commit --no-ff upstream/$UPSTREAM_BRANCH; git diff --name-only --diff-filter=U; git merge --abort
+  git merge --no-commit --no-ff upstream-main; git diff --name-only --diff-filter=U; git merge --abort
   ```
 - If conflicts were listed: show them and ask user if they want to proceed.
 - If no conflicts: tell user it is clean and proceed.
 
 # Step 4A: Full update (MERGE, default)
 Run:
-- `git merge upstream/$UPSTREAM_BRANCH --no-edit`
+- `git merge upstream-main --no-edit`
 
 If conflicts occur:
 - Run `git status` and identify conflicted files.
@@ -161,7 +168,7 @@ If user wants to stop:
 
 # Step 4C: Rebase (only if user explicitly chose option D)
 Run:
-- `git rebase upstream/$UPSTREAM_BRANCH`
+- `git rebase upstream/$UPSTREAM_BRANCH` (or `git rebase upstream-main` if you prefer rebasing onto your local upstream tracking branch)
 
 If conflicts:
 - Resolve conflict markers only, then:
@@ -223,9 +230,10 @@ Show:
 - Backup tag: the tag name created in Step 1
 - New HEAD: `git rev-parse --short HEAD`
 - Upstream HEAD: `git rev-parse --short upstream/$UPSTREAM_BRANCH`
+- Local upstream tracking HEAD (if using `upstream-main`): `git rev-parse --short upstream-main`
 - Conflicts resolved (list files, if any)
 - Breaking changes applied (list skills run, if any)
-- Remaining local diff vs upstream: `git diff --name-only upstream/$UPSTREAM_BRANCH..HEAD`
+- Remaining local diff vs upstream: `git diff --name-only upstream/$UPSTREAM_BRANCH..HEAD` (or `git diff --name-only upstream-main..HEAD`)
 
 Tell the user:
 - To rollback: `git reset --hard <backup-tag-from-step-1>`
